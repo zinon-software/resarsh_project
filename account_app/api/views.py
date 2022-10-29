@@ -8,6 +8,24 @@ from account_app.api.serializers import DriverSerializers, UserSerializers, Cust
 from account_app.models import User
 from dashboard_app.api.views import ApisView
 
+def set_request_user(request,user_field_name='user'):
+    "Set user from request"
+    try:
+        # сhange the values you want
+        request.data[user_field_name] = request.user
+    except:
+        # remember old state
+        _mutable = request.data._mutable
+
+        # set to mutable
+        request.data._mutable = True
+
+        # сhange the values you want
+        request.data['user'] = User.objects.get(id=request.user.id)
+
+        # set mutable flag back
+        request.data._mutable = _mutable
+    return request
 
 class UsersAPIView(APIView):
 
@@ -54,11 +72,20 @@ class UpgradeAccountToCustomerApiView(ApisView):
     def post(self, request, *args, **kwargs):
 
         user = request.user
-        if user.user_type != '1' :
-            return Response({'message': "لقد تمت ترقية حسابك بالفعل"}, status=status.HTTP_400_BAD_REQUEST)
+
         user.user_type = '3'
 
-        serializer = CustomerSerializers(data=request.data, instance=user)
+        request = set_request_user(request)
+
+
+
+        # if the user have a customer account update account
+        try:
+            serializer = CustomerSerializers(data=request.data, instance=request.user.customer_account)
+        # if not create new customer account
+        except:
+            serializer = CustomerSerializers(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             user.save()
@@ -74,15 +101,14 @@ class UpgradeAccountToDriverApiView(ApisView):
     def post(self, request, *args, **kwargs):
 
         user = request.user
-        if user.user_type != '1' :
-            return Response({'message': "لقد تمت ترقية حسابك بالفعل"}, status=status.HTTP_400_BAD_REQUEST)
-
         user.user_type = '2'
 
-        serializer = DriverSerializers(data=request.data, instance=user)
+        request = set_request_user(request)
+
+        serializer = DriverSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            user.save
+            user.save()
             return Response({'message': 'تمت الترقية بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
