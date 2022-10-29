@@ -66,8 +66,21 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     driver_name = models.CharField(max_length=200, null=True, blank=True)
+    car_type = models.CharField(max_length=200, null=True, blank=True)
+    # car_image = models.ImageField()
+    # license_image = models.ImageField()
+    # ownership_image = models.ImageField()
+    car_no = models.PositiveIntegerField(default=0)
+    location = models.CharField(max_length=200, null=True, blank=True)
+
 
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     customer_name = models.CharField(max_length=200, null=True, blank=True)
+    # logo = models.ImageField()
+    company_name = models.CharField(max_length=200, null=True, blank=True)
+    commercial_no = models.PositiveIntegerField(default=0)
+    # commercial_image = models.ImageField()
+    location = models.CharField(max_length=200, null=True, blank=True)
+
