@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Local Apps
     'account_app',
     'rest_auth_urls',
+    'dashboard_app',
 
     # Third-Party Apps
     'rest_framework',
