@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -61,12 +61,6 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         # other_user = Account.objects.get(pk=1)
         # current_user.profile.follows.add(other_user)
         # other_user.profile.followers.add(current_user)
-
-
-class Account(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    user_type = models.CharField(
-        max_length=1, choices=TYPE, default='1', null=True, blank=True)
 
 
 class Driver(models.Model):
