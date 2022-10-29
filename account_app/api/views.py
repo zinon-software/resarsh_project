@@ -54,11 +54,11 @@ class UpgradeAccountToCustomerApiView(ApisView):
     def post(self, request, *args, **kwargs):
 
         user = request.user
-
+        if user.user_type != '1' :
+            return Response({'message': "لقد تمت ترقية حسابك بالفعل"}, status=status.HTTP_400_BAD_REQUEST)
         user.user_type = '3'
 
-        serializer = CustomerSerializers(data=request.data, instance=request.user)
-
+        serializer = CustomerSerializers(data=request.data, instance=user)
         if serializer.is_valid():
             serializer.save()
             user.save()
@@ -74,9 +74,12 @@ class UpgradeAccountToDriverApiView(ApisView):
     def post(self, request, *args, **kwargs):
 
         user = request.user
+        if user.user_type != '1' :
+            return Response({'message': "لقد تمت ترقية حسابك بالفعل"}, status=status.HTTP_400_BAD_REQUEST)
+
         user.user_type = '2'
 
-        serializer = DriverSerializers(data=request.data)
+        serializer = DriverSerializers(data=request.data, instance=user)
         if serializer.is_valid():
             serializer.save()
             user.save
