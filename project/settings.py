@@ -10,7 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import django
 from pathlib import Path
+from django.utils.encoding import smart_str, force_str
+from django.utils.translation import gettext, gettext_lazy
+
+# For rest-auth
+django.utils.encoding.smart_text = smart_str
+django.utils.encoding.force_text = force_str
+django.utils.translation.ugettext = gettext
+django.utils.translation.ugettext_lazy = gettext_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +49,7 @@ INSTALLED_APPS = [
 
     # Local Apps
     'account_app',
+    'rest_auth_urls',
 
     # Third-Party Apps
     'rest_framework',
