@@ -54,6 +54,12 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
         pass
 
 
+LOCATION_TYPE = [
+    ('1', 'Country To Country'),
+    ('2', 'City To City'),
+    ('3', 'Inside City'),
+]
+
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,related_name="driver_account", null=True, blank=True)
     driver_name = models.CharField(max_length=200, null=True, blank=True)
@@ -63,6 +69,7 @@ class Driver(models.Model):
     # ownership_image = models.ImageField()
     car_no = models.PositiveIntegerField(default=0)
     location = models.CharField(max_length=200, null=True, blank=True)
+    location_type = models.CharField(max_length=1, choices=LOCATION_TYPE, default='1', null=True, blank=True)
 
 
 

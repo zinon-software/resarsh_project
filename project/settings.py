@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'account_app',
     'rest_auth_urls',
     'dashboard_app',
+    'services_app',
 
     # Third-Party Apps
     'rest_framework',
