@@ -17,10 +17,12 @@ class DriverSerializers(serializers.ModelSerializer):
     class Meta:
         model = Driver
         fields = '__all__'
+        depth = 1
 
 
 class CustomerSerializers(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
+        depth = 1
 

@@ -27,6 +27,10 @@ class ApisView(APIView):
                 'customer-upgrade':'http://127.0.0.1:8000/api/account/customer-upgrade/',
                 'driver-upgrade':'http://127.0.0.1:8000/api/account/driver-upgrade/',
             },
+            'service':{
+                'services':'http://127.0.0.1:8000/api/services/',
+                'service':'http://127.0.0.1:8000/api/services/<srt:service>/',
+            },
         }
 
         return Response(data, status=status.HTTP_200_OK)
