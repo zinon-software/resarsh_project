@@ -2,6 +2,14 @@ from rest_framework import serializers
 
 from account_app.models import User, Customer, Driver
 
+class UserDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+        ]
 
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
@@ -17,12 +25,19 @@ class DriverSerializers(serializers.ModelSerializer):
     class Meta:
         model = Driver
         fields = '__all__'
-        depth = 1
+
+    def to_representation(self, value):
+        data = super().to_representation(value)
+        data["user"] = UserDataSerializer(value.user).data
+        return data
 
 
 class CustomerSerializers(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
-        depth = 1
+    def to_representation(self, value):
+        data = super().to_representation(value)
+        data["user"] = UserDataSerializer(value.user).data
+        return data
 

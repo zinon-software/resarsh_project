@@ -8,11 +8,11 @@ from account_app.api.serializers import DriverSerializers, UserSerializers, Cust
 from account_app.models import User
 from dashboard_app.api.views import ApisView
 
-def set_request_user(request,user_field_name='user'):
+def set_request_data(request,value=None,user_field_name='user'):
     "Set user from request"
     try:
         # сhange the values you want
-        request.data[user_field_name] = request.user
+        request.data[user_field_name] = value
     except:
         # remember old state
         _mutable = request.data._mutable
@@ -21,7 +21,7 @@ def set_request_user(request,user_field_name='user'):
         request.data._mutable = True
 
         # сhange the values you want
-        request.data['user'] = User.objects.get(id=request.user.id)
+        request.data[user_field_name] = value
 
         # set mutable flag back
         request.data._mutable = _mutable
@@ -75,7 +75,7 @@ class UpgradeAccountToCustomerApiView(ApisView):
 
         user.user_type = '3'
 
-        request = set_request_user(request)
+        request = set_request_data(request,request.user.id)
 
 
 
@@ -103,7 +103,7 @@ class UpgradeAccountToDriverApiView(ApisView):
         user = request.user
         user.user_type = '2'
 
-        request = set_request_user(request)
+        request = set_request_data(request,request.user.id)
 
         serializer = DriverSerializers(data=request.data)
         if serializer.is_valid():
