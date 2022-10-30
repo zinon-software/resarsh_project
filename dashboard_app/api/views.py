@@ -30,6 +30,8 @@ class ApisView(APIView):
             'service':{
                 'services':'http://127.0.0.1:8000/api/services/',
                 'service':'http://127.0.0.1:8000/api/services/<srt:service>/',
+                'offers':'http://127.0.0.1:8000/api/services/offers/',
+                'offer':'http://127.0.0.1:8000/api/services/offers/<str:offer>',
             },
         }
 

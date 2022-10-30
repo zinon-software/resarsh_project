@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from account_app.utility import MyAccountManager
+from account_app.util import MyAccountManager
 
 # Create your models here.
 

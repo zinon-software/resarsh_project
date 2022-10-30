@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status
 from account_app.api.serializers import DriverSerializers, UserSerializers, CustomerSerializers
 
-from account_app.models import User
+from account_app.models import Customer, Driver, User
 from dashboard_app.api.views import ApisView
 
 def set_request_data(request,value=None,user_field_name='user'):
@@ -92,6 +92,13 @@ class UpgradeAccountToCustomerApiView(ApisView):
             return Response({'message': 'تمت الترقية بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, *args, **kwargs):
+
+        customers = Customer.objects.all()
+
+        serializer = CustomerSerializers(customers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UpgradeAccountToDriverApiView(ApisView):
@@ -112,3 +119,10 @@ class UpgradeAccountToDriverApiView(ApisView):
             return Response({'message': 'تمت الترقية بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, *args, **kwargs):
+
+        drivers = Driver.objects.all()
+
+        serializer = DriverSerializers(drivers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

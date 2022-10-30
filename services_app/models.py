@@ -50,7 +50,7 @@ ORDER_STATUE = [
 class Order(models.Model):
     service = models.ForeignKey(Service, null=True, blank=True, related_name='service_order', on_delete=models.CASCADE)
     offer = models.ForeignKey(Offer, null=True, blank=True, related_name='offer_order', on_delete=models.CASCADE)
-    order_status = models.CharField(max_length=25, choices=ORDER_STATUE, default='in_progress', null=True, blank=True)
+    order_status = models.CharField(max_length=25, choices=ORDER_STATUE, default='accepted', null=True, blank=True)
     created_dt = models.DateTimeField(auto_now_add=True)
     arrival_dt = models.DateTimeField(auto_now=True)
     
