@@ -22,6 +22,7 @@ class UserSerializers(serializers.ModelSerializer):
 
 
 class DriverSerializers(serializers.ModelSerializer):
+    #user = UserDataSerializer(read_only=True) # if user is read only
     class Meta:
         model = Driver
         fields = '__all__'
