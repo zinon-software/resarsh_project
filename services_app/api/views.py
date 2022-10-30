@@ -5,13 +5,15 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status
 
 from dashboard_app.api.views import ApisView
+from services_app.api.permissions import CustomerOnlyObject
 from services_app.api.serializers import ServiceSerializers
 from services_app.models import Service
 from account_app.api.views import set_request_data
 
 class ServicesAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,CustomerOnlyObject]
     serializer_class = ServiceSerializers
+    customer_field = 'customer'
 
     def get(self, request, *args, **kwargs):
         services = Service.objects.all()
@@ -29,8 +31,9 @@ class ServicesAPIView(APIView):
 
 
 class ServiceApiView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [CustomerOnlyObject]
     serializer_class = ServiceSerializers
+    customer_field = 'customer'
 
     def get_object(self, service_id):
         '''
