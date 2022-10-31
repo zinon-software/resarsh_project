@@ -31,8 +31,8 @@ urlpatterns = [
         name="rest_verify_email",
     ),
     path(
-        "registration/account-confirm-email/<str:key>",
-        TemplateView.as_view(),
+        "registration/account-confirm-email/<str:key>/",
+        TemplateView.as_view(template_name="account-confirm.html"),
         name="account_confirm_email",
     ),
     path("login/", LoginView.as_view(), name="rest_login"),
