@@ -1,4 +1,3 @@
-
 from django.utils import timezone
 from xmlrpc.client import DateTime
 from rest_framework.response import Response
@@ -6,12 +5,11 @@ from rest_framework.views import APIView
 
 from rest_framework import permissions, status
 
-from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject
+from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject
 from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
 from services_app.models import Offer, Order, Service
 from account_app.api.views import set_request_data
 from rest_framework import generics
-
 
 
 class ServicesAPIView(generics.ListAPIView):
@@ -147,7 +145,7 @@ class OrdersAPIView(APIView):
 
 
 class OrderAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,DriverOrCustomerOnlyObject]
     serializer_class = OrderSerializers
 
     def get_object(self, order_id):
@@ -180,32 +178,21 @@ class OrderAPIView(APIView):
         if not order_instance:
             return Response({"message": "الطلب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if (request.user.user_type == '3'):
-            account_id = request.user.customer_account.id
-        elif (request.user.user_type == '2'):
-            account_id = request.user.driver_account.id
-        else:
-            account_id = ''
+        data = {
+            'order_status': request.data.get('order_status'),
+        }
+        if (request.data.get('order_status') == 'complete'):
+            data.update({
+                'order_status': request.data.get('order_status'),
+                'arrival_dt': timezone.now()
+            })
 
-        if (order_instance.offer.driver.id == account_id or order_instance.offer.service.customer.id == account_id):
-            data = {}
-            if (request.data.get('order_status') == 'complete'):
-                data = {
-                    'order_status': request.data.get('order_status'),
-                    'arrival_dt': timezone.now()
-                }
-            else:
-                data = {
-                    'order_status': request.data.get('order_status'),
-                }
-
-            serializer = OrderSerializers(
-                instance=order_instance, data=data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"message": 'ليست لديك صلاحيات تعديل هذ الطلب'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrderSerializers(
+            instance=order_instance, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # def delete(self, request, order_id, *args, **kwargs):
     #     order_instance = self.get_object(order_id)
