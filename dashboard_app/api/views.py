@@ -9,17 +9,18 @@ from account_app.models import User
 
 
 class ApisView(APIView):
+    permission_classes = [permissions.AllowAny]
     def get(self, request, *args, **kwargs):
 
         data = {
             'auth':{
-                'registration':'http://127.0.0.1:8000/rest-auth/registration/',
-                'verify-email':'http://127.0.0.1:8000/rest-auth/registration/verify-email/',
-                'account-confirm-email':'http://127.0.0.1:8000/rest-auth/registration/account-confirm-email/<str:key>/',
-                'login':'http://127.0.0.1:8000/rest-auth/login/',
-                'logout':'http://127.0.0.1:8000/rest-auth/logout/',
-                'user':'http://127.0.0.1:8000/rest-auth/user/',
-                'password-change':'http://127.0.0.1:8000/rest-auth/password/change/',
+                'registration':'http://127.0.0.1:8000/api/auth/registration/',
+                'verify-email':'http://127.0.0.1:8000/api/auth/registration/verify-email/',
+                'account-confirm-email':'http://127.0.0.1:8000/api/auth/registration/account-confirm-email/<str:key>/',
+                'login':'http://127.0.0.1:8000/api/auth/login/',
+                'logout':'http://127.0.0.1:8000/api-auth/logout/',
+                'user':'http://127.0.0.1:8000/api/auth/user/',
+                'password-change':'http://127.0.0.1:8000/api/auth/password/change/',
             },
             'account':{
                 'user-username':'http://127.0.0.1:8000/api/account/users/<str:username>/',
@@ -30,8 +31,10 @@ class ApisView(APIView):
             'service':{
                 'services':'http://127.0.0.1:8000/api/services/',
                 'service':'http://127.0.0.1:8000/api/services/<srt:service>/',
-                'offers':'http://127.0.0.1:8000/api/services/offers/',
-                'offer':'http://127.0.0.1:8000/api/services/offers/<str:offer>',
+                'offers':'http://127.0.0.1:8000/api/offers/',
+                'offer':'http://127.0.0.1:8000/api/offers/<str:offer>',
+                'orders':'http://127.0.0.1:8000/api/orders/',
+                'order':'http://127.0.0.1:8000/api/orders/<str:order>',
             },
         }
 

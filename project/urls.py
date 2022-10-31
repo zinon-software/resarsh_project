@@ -21,10 +21,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
 
-    path('rest-auth/', include('rest_auth_urls.urls')),
+    path('api/auth/', include('rest_auth_urls.urls')),
 
     path('api/account/', include('account_app.api.urls')),
-    path('api/services/', include('services_app.api.urls')),
+    path('api/', include('services_app.api.urls')),
     path('api/', include('dashboard_app.api.urls')),
 
     

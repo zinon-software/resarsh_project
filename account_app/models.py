@@ -31,9 +31,6 @@ class User(AbstractUser):
     phone = models.CharField(validators=[phone_regex], max_length=17, unique=True, null=True, blank=True)
     user_type = models.CharField(max_length=1, choices=TYPE, default='1', null=True, blank=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-
     objects = MyAccountManager()
 
     def __str__(self):

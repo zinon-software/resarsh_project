@@ -1,19 +1,36 @@
 
+from django.utils import timezone
+from xmlrpc.client import DateTime
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_framework import permissions, status
 
-from dashboard_app.api.views import ApisView
 from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject
-from services_app.api.serializers import OfferSerializers, ServiceSerializers
-from services_app.models import Offer, Service
+from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
+from services_app.models import Offer, Order, Service
 from account_app.api.views import set_request_data
+from rest_framework import generics
 
-class ServicesAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,CustomerOnlyObject]
+
+
+class ServicesAPIView(generics.ListAPIView):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, CustomerOnlyObject]
     serializer_class = ServiceSerializers
     customer_field = 'customer'
+
+    # queryset = Service.objects.all()
+    # filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    # search_fields = ['customer', 'cargo_type']
+    # filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+
+    # def get_queryset(self):
+    #     queryset = Service.objects.all()
+    #     cargo_type = self.request.query_params.get('cargo_type')
+    #     if cargo_type is not None:
+    #         queryset = queryset.filter(cargo_type=cargo_type)
+    #     return queryset
 
     def get(self, request, *args, **kwargs):
         services = Service.objects.all()
@@ -22,7 +39,8 @@ class ServicesAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
-        request = set_request_data(request,request.user.customer_account.id,'customer')
+        request = set_request_data(
+            request, request.user.customer_account.id, 'customer')
         serializer = ServiceSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -49,7 +67,7 @@ class ServiceApiView(APIView):
         user_instance = self.get_object(service_id)
         if not user_instance:
             return Response(
-                {"res": "الخدمة غير موجود"},
+                {"message": "الخدمة غير موجود"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -58,9 +76,9 @@ class ServiceApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 class OffersAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,DriverOnlyObject]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, DriverOnlyObject]
     serializer_class = OfferSerializers
     driver_field = 'driver'
 
@@ -71,13 +89,13 @@ class OffersAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
-        request = set_request_data(request,request.user.driver_account.id,'driver')
+        request = set_request_data(
+            request, request.user.driver_account.id, 'driver')
         serializer = OfferSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class OfferApiView(APIView):
@@ -91,7 +109,7 @@ class OfferApiView(APIView):
         '''
         try:
             return Offer.objects.get(id=offer_id)
-        except Service.DoesNotExist:
+        except Offer.DoesNotExist:
             return None
 
     def get(self, request, offer_id, *args, **kwargs):
@@ -99,7 +117,7 @@ class OfferApiView(APIView):
         user_instance = self.get_object(offer_id)
         if not user_instance:
             return Response(
-                {"res": "الخدمة غير موجود"},
+                {"message": "العرض غير موجود"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -108,4 +126,93 @@ class OfferApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class OrdersAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = OrderSerializers
 
+    def get(self, request, *args, **kwargs):
+        orders = Order.objects.all()
+
+        serializer = OrderSerializers(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, format=None):
+        request = set_request_data(
+            request, request.user.customer_account.id, 'customer')
+        serializer = OrderSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = OrderSerializers
+
+    def get_object(self, order_id):
+        '''
+        Helper method to get the object with given  user
+        '''
+        try:
+            return Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return None
+
+    def get(self, request, order_id, *args, **kwargs):
+
+        order_instance = self.get_object(order_id)
+        if not order_instance:
+            return Response(
+                {"message": "الطلب غير موجود"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = OrderSerializers(order_instance)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, order_id, *args, **kwargs):
+        '''
+        Updates the todo item with given order_id if exists
+        '''
+        order_instance = self.get_object(order_id)
+        if not order_instance:
+            return Response({"message": "الطلب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (request.user.user_type == '3'):
+            account_id = request.user.customer_account.id
+        elif (request.user.user_type == '2'):
+            account_id = request.user.driver_account.id
+        else:
+            account_id = ''
+
+        if (order_instance.offer.driver.id == account_id or order_instance.offer.service.customer.id == account_id):
+            data = {}
+            if (request.data.get('order_status') == 'complete'):
+                data = {
+                    'order_status': request.data.get('order_status'),
+                    'arrival_dt': timezone.now()
+                }
+            else:
+                data = {
+                    'order_status': request.data.get('order_status'),
+                }
+
+            serializer = OrderSerializers(
+                instance=order_instance, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": 'ليست لديك صلاحيات تعديل هذ الطلب'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # def delete(self, request, order_id, *args, **kwargs):
+    #     order_instance = self.get_object(order_id)
+    #     if not order_instance:
+    #         return Response(
+    #             {"res": "الطلب غير موجود"},
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )
+    #     order_instance.delete()
+    #     return Response({'message': "تم حذف الطلب"}, status=status.HTTP_200_OK)
