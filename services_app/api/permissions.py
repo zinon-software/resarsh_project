@@ -1,5 +1,7 @@
 from rest_framework.permissions import BasePermission
 
+from services_app.models import Order
+
 
 class CustomerOnlyObject(BasePermission):
     """
@@ -57,17 +59,17 @@ class DriverOrCustomerOnlyObject(BasePermission):
     """
     Allows access only to Order Driver or Order Customer.
     """
-
+    def has_permission(self, request, view):
+        return self.has_object_permission( request, view,Order.objects.get(id=view.kwargs.get("order_id")))
     def has_object_permission(self, request, view, obj):
-        if request.method == "PUT":
-            return bool(
+        return bool(
                 request.user
                 and request.user.is_authenticated
                 and (
                         (request.user.user_type == "2"
-                         and request.user.driver_account == getattr(obj, 'driver_account',False))
+                         and request.user.driver_account == obj.offer.driver)
                         or
                         (request.user.user_type == "3"
-                         and request.user.customer_account == getattr(obj,'customer_account',False))
+                         and request.user.customer_account == obj.offer.service.customer)
                 )
             )
