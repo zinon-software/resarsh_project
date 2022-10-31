@@ -1,9 +1,12 @@
+import django_filters
 from django.utils import timezone
 from xmlrpc.client import DateTime
+
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework import permissions, status
+from rest_framework import permissions, status, filters
 
 from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject
 from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
@@ -18,17 +21,16 @@ class ServicesAPIView(generics.ListAPIView):
     serializer_class = ServiceSerializers
     customer_field = 'customer'
 
-    # queryset = Service.objects.all()
-    # filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    # search_fields = ['customer', 'cargo_type']
-    # filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    queryset = Service.objects.all()
 
-    # def get_queryset(self):
-    #     queryset = Service.objects.all()
-    #     cargo_type = self.request.query_params.get('cargo_type')
-    #     if cargo_type is not None:
-    #         queryset = queryset.filter(cargo_type=cargo_type)
-    #     return queryset
+    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['customer__user', 'cargo_type']
+    def get_queryset(self):
+        queryset = Service.objects.all()
+        cargo_type = self.request.query_params.get('cargo_type')
+        if cargo_type is not None:
+            queryset = queryset.filter(cargo_type=cargo_type)
+        return queryset
 
     def get(self, request, *args, **kwargs):
         services = Service.objects.all()
@@ -145,7 +147,7 @@ class OrdersAPIView(APIView):
 
 
 class OrderAPIView(APIView):
-    permission_classes = [permissions.IsAuthenticated,DriverOrCustomerOnlyObject]
+    permission_classes = [DriverOrCustomerOnlyObject]
     serializer_class = OrderSerializers
 
     def get_object(self, order_id):
