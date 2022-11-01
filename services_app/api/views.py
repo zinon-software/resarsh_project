@@ -2,11 +2,10 @@ import django_filters
 from django.utils import timezone
 from xmlrpc.client import DateTime
 
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework import permissions, status, filters
+from rest_framework import permissions, status
 
 from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject
 from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
@@ -14,30 +13,20 @@ from services_app.models import Offer, Order, Service
 from account_app.api.views import set_request_data
 from rest_framework import generics
 
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
-class ServicesAPIView(generics.ListCreateAPIView):
+class ServicesAPIView(generics.ListAPIView):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly, CustomerOnlyObject]
     serializer_class = ServiceSerializers
     customer_field = 'customer'
 
     queryset = Service.objects.all()
+    
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('customer__user__username', 'cargo_type')
 
-    filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['customer__user__username' ]#, 'cargo_type']
-    def get_queryset(self):
-        queryset = Service.objects.all()
-        customer__user = self.request.query_params.get('customer__user__username')
-        if customer__user is not None:
-            print(customer__user)
-            queryset = queryset.filter(customer__user__username=customer__user)
-        return queryset
-
-    def get(self, request, *args, **kwargs):
-        services = Service.objects.all()
-
-        serializer = ServiceSerializers(services, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
         request = set_request_data(
@@ -77,17 +66,18 @@ class ServiceApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class OffersAPIView(APIView):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly, DriverOnlyObject]
+
+class OffersAPIView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, DriverOnlyObject]
+    queryset = Offer.objects.all()
     serializer_class = OfferSerializers
     driver_field = 'driver'
 
-    def get(self, request, *args, **kwargs):
-        offerts = Offer.objects.all()
+    filter_backends = (DjangoFilterBackend, SearchFilter)
 
-        serializer = OfferSerializers(offerts, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    filterset_fields = ('id', 'service')
+
+
 
     def post(self, request, format=None):
         request = set_request_data(
