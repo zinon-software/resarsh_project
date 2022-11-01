@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_framework import permissions, status
+from account_app.api.permissions import UserIsNotCustomerOrDriver
 from account_app.api.serializers import DriverSerializers, UserSerializers, CustomerSerializers
 
 from account_app.models import Customer, Driver, User
@@ -66,7 +67,7 @@ class UserApiView(APIView):
 
 
 class UpgradeAccountToCustomerApiView(ApisView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
     serializer_class = CustomerSerializers
 
     def post(self, request, *args, **kwargs):
@@ -102,7 +103,7 @@ class UpgradeAccountToCustomerApiView(ApisView):
 
 
 class UpgradeAccountToDriverApiView(ApisView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
     serializer_class = DriverSerializers
 
     def post(self, request, *args, **kwargs):

@@ -15,7 +15,7 @@ from account_app.api.views import set_request_data
 from rest_framework import generics
 
 
-class ServicesAPIView(generics.ListAPIView):
+class ServicesAPIView(generics.ListCreateAPIView):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly, CustomerOnlyObject]
     serializer_class = ServiceSerializers
@@ -24,12 +24,13 @@ class ServicesAPIView(generics.ListAPIView):
     queryset = Service.objects.all()
 
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['customer__user', 'cargo_type']
+    filterset_fields = ['customer__user__username' ]#, 'cargo_type']
     def get_queryset(self):
         queryset = Service.objects.all()
-        cargo_type = self.request.query_params.get('cargo_type')
-        if cargo_type is not None:
-            queryset = queryset.filter(cargo_type=cargo_type)
+        customer__user = self.request.query_params.get('customer__user__username')
+        if customer__user is not None:
+            print(customer__user)
+            queryset = queryset.filter(customer__user__username=customer__user)
         return queryset
 
     def get(self, request, *args, **kwargs):
@@ -205,3 +206,30 @@ class OrderAPIView(APIView):
     #         )
     #     order_instance.delete()
     #     return Response({'message': "تم حذف الطلب"}, status=status.HTTP_200_OK)
+
+
+class MyServicesAPIView(APIView):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, CustomerOnlyObject]
+    serializer_class = ServiceSerializers
+
+    def get(self, request, *args, **kwargs):
+        request = set_request_data(
+            request, request.user.customer_account.id, 'customer')
+        services = Service.objects.filter(customer__user = request.user)
+
+        serializer = ServiceSerializers(services, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, format=None):
+        request = set_request_data(
+            request, request.user.customer_account.id, 'customer')
+        serializer = ServiceSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+

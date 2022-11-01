@@ -1,12 +1,13 @@
 from django.urls import path
 
-from services_app.api.views import OfferApiView, OffersAPIView, OrderAPIView, OrdersAPIView, ServiceApiView, ServicesAPIView
+from services_app.api.views import OfferApiView, OffersAPIView, OrderAPIView, OrdersAPIView, ServiceApiView, ServicesAPIView, MyServicesAPIView
 
 
 
 urlpatterns = [
     path('services/', ServicesAPIView.as_view(), name="services"),
     path('services/<int:service_id>/', ServiceApiView.as_view(), name="service"),
+    path('my-services/', MyServicesAPIView.as_view(), name="my-services"),
     path('offers/', OffersAPIView.as_view(), name="offers"),
     path('offers/<int:offer_id>/', OfferApiView.as_view(), name="offer"),
     path('orders/', OrdersAPIView.as_view(), name="orders"),
