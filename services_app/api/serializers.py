@@ -39,3 +39,10 @@ class OrderSerializers(serializers.ModelSerializer):
         data = super().to_representation(value)
         data["offer"] = OfferSerializers(value.offer).data
         return data
+
+    def validate_offer(self, offer):
+        request = self.context.get("request")
+        if request:
+            if not offer.service.customer.user == request.user:
+                raise serializers.ValidationError("غير مسموح بذلك")
+        return offer

@@ -141,7 +141,7 @@ class OrdersAPIView(generics.ListAPIView):
 
     def post(self, request, format=None):
         request = set_request_data(request, request.user.customer_account.id, 'customer')
-        serializer = OrderSerializers(data=request.data)
+        serializer = OrderSerializers(data=request.data,context={"request":request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
