@@ -39,13 +39,15 @@ class UsersAPIView(generics.ListAPIView):
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = UserSerializers
-    
+
     pagination_class = CustomPagination
   
     queryset = User.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('id','username', 'email', 'is_active', 'user_type')
+
+
 
 class UserApiView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -109,7 +111,6 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
    
-
 class UpgradeAccountToDriverApiView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
     serializer_class = DriverSerializers
