@@ -60,6 +60,14 @@ class DriverOrCustomerOnlyObject(BasePermission):
     Allows access only to Order Driver or Order Customer.
     """
     def has_permission(self, request, view):
+        # if request.method == "POST":
+        #     return bool(
+        #             request.user
+        #             and request.user.is_authenticated
+        #             and ((request.user.user_type == "3"
+        #                     and request.user.customer_account == obj.offer.service.customer)
+        #             )
+        #         )
         return self.has_object_permission( request, view,Order.objects.get(id=view.kwargs.get("order_id")))
     def has_object_permission(self, request, view, obj):
         return bool(

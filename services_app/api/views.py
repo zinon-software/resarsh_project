@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rest_framework import permissions, status
+from services_app.api.pagination import CustomPagination
 
 from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject
 from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
@@ -28,6 +29,9 @@ class ServicesAPIView(generics.ListAPIView):
     filterset_fields = ('customer__user__username', 'cargo_type')
 
 
+    pagination_class = CustomPagination
+    
+    
     def post(self, request, format=None):
         request = set_request_data(
             request, request.user.customer_account.id, 'customer')
@@ -78,6 +82,8 @@ class OffersAPIView(generics.ListAPIView):
     filterset_fields = ('id', 'service')
 
 
+    pagination_class = CustomPagination
+
 
     def post(self, request, format=None):
         request = set_request_data(
@@ -117,19 +123,24 @@ class OfferApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class OrdersAPIView(APIView):
+
+
+class OrdersAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = OrderSerializers
 
-    def get(self, request, *args, **kwargs):
-        orders = Order.objects.all()
+    pagination_class = CustomPagination
 
-        serializer = OrderSerializers(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    queryset = Order.objects.all()
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+
+    filterset_fields = ('id', 'offer', 'order_status', 'offer__driver', 'offer__service', 'offer__service__customer')
+
 
     def post(self, request, format=None):
-        request = set_request_data(
-            request, request.user.customer_account.id, 'customer')
+        request = set_request_data(request, request.user.customer_account.id, 'customer')
         serializer = OrderSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -198,28 +209,5 @@ class OrderAPIView(APIView):
     #     return Response({'message': "تم حذف الطلب"}, status=status.HTTP_200_OK)
 
 
-class MyServicesAPIView(APIView):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly, CustomerOnlyObject]
-    serializer_class = ServiceSerializers
-
-    def get(self, request, *args, **kwargs):
-        request = set_request_data(
-            request, request.user.customer_account.id, 'customer')
-        services = Service.objects.filter(customer__user = request.user)
-
-        serializer = ServiceSerializers(services, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def post(self, request, format=None):
-        request = set_request_data(
-            request, request.user.customer_account.id, 'customer')
-        serializer = ServiceSerializers(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    
 
 

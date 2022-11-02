@@ -2,12 +2,19 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from rest_framework import generics
+
 from rest_framework import permissions, status
 from account_app.api.permissions import UserIsNotCustomerOrDriver
 from account_app.api.serializers import DriverSerializers, UserSerializers, CustomerSerializers
 
 from account_app.models import Customer, Driver, User
-from dashboard_app.api.views import ApisView
+from services_app.api.pagination import CustomPagination
+
+
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 def set_request_data(request,value=None,user_field_name='user'):
     "Set user from request"
@@ -28,17 +35,17 @@ def set_request_data(request,value=None,user_field_name='user'):
         request.data._mutable = _mutable
     return request
 
-class UsersAPIView(APIView):
+class UsersAPIView(generics.ListAPIView):
 
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
-
-    def get(self, request, *args, **kwargs):
-
-        users = User.objects.all()
-
-        serializer = UserSerializers(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = UserSerializers
+    
+    pagination_class = CustomPagination
+  
+    queryset = User.objects.all()
+    
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('id','username', 'email', 'is_active', 'user_type')
 
 class UserApiView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -66,9 +73,16 @@ class UserApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UpgradeAccountToCustomerApiView(ApisView):
+class UpgradeAccountToCustomerApiView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
     serializer_class = CustomerSerializers
+
+    pagination_class = CustomPagination
+  
+    queryset = Customer.objects.all()
+    
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('id','user', 'commercial_no', 'location', 'customer_name')
 
     def post(self, request, *args, **kwargs):
 
@@ -94,17 +108,18 @@ class UpgradeAccountToCustomerApiView(ApisView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def get(self, request, *args, **kwargs):
+   
 
-        customers = Customer.objects.all()
-
-        serializer = CustomerSerializers(customers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class UpgradeAccountToDriverApiView(ApisView):
+class UpgradeAccountToDriverApiView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
     serializer_class = DriverSerializers
+    
+    pagination_class = CustomPagination
+
+    queryset = Driver.objects.all()
+    
+    filter_backends = (DjangoFilterBackend, SearchFilter)
+    filterset_fields = ('id', 'user', 'driver_name', 'car_type', 'car_no', 'location', 'location_type')
 
     def post(self, request, *args, **kwargs):
 
@@ -121,7 +136,7 @@ class UpgradeAccountToDriverApiView(ApisView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def get(self, request, *args, **kwargs):
+    
 
         drivers = Driver.objects.all()
 
