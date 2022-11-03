@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 # from django.conf.urls import url
+from dashboard_app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,5 +28,6 @@ urlpatterns = [
     path('api/', include('services_app.api.urls')),
     path('api/', include('dashboard_app.api.urls')),
 
+    path('', views.home_view)
     
 ]
