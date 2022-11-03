@@ -70,6 +70,7 @@ class DriverOrCustomerOnlyObject(BasePermission):
         #         )
         return self.has_object_permission( request, view,Order.objects.get(id=view.kwargs.get("order_id")))
     def has_object_permission(self, request, view, obj):
+        print(obj.offer.service.customer.id)
         return bool(
                 request.user
                 and request.user.is_authenticated

@@ -76,7 +76,7 @@ class UserApiView(APIView):
 
 
 class UpgradeAccountToCustomerApiView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotCustomerOrDriver]
     serializer_class = CustomerSerializers
 
     pagination_class = CustomPagination
@@ -84,7 +84,7 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
     queryset = Customer.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('id','user', 'commercial_no', 'location', 'customer_name')
+    filterset_fields = ('id','user','user__username', 'commercial_no', 'location', 'customer_name')
 
     def post(self, request, *args, **kwargs):
 
@@ -109,10 +109,31 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
             return Response({'message': 'تمت الترقية بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        
+        instance = self.get_object(request.user)
+        if not instance:
+            return Response({"message": "الحساب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
+
+        request = set_request_data(request,request.user.id)
+
+        serializer = CustomerSerializers(instance=instance,data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'تمت تعديل الحساب بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_object(self, user):
+        try:
+            return Customer.objects.get(user=user)
+        except Customer.DoesNotExist:
+            return None
     
    
 class UpgradeAccountToDriverApiView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticated, UserIsNotCustomerOrDriver]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotCustomerOrDriver]
     serializer_class = DriverSerializers
     
     pagination_class = CustomPagination
@@ -120,7 +141,7 @@ class UpgradeAccountToDriverApiView(generics.ListAPIView):
     queryset = Driver.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('id', 'user', 'driver_name', 'car_type', 'car_no', 'location', 'location_type')
+    filterset_fields = ('id', 'user','user__username', 'driver_name', 'car_type', 'car_no', 'location', 'location_type')
 
     def post(self, request, *args, **kwargs):
 
@@ -137,9 +158,24 @@ class UpgradeAccountToDriverApiView(generics.ListAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object(request.user)
+        if not instance:
+            return Response({"message": "الحساب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
 
-        drivers = Driver.objects.all()
+        request = set_request_data(request,request.user.id)
 
-        serializer = DriverSerializers(drivers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = DriverSerializers(instance=instance,data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'تمت تعديل الحساب بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def get_object(self, user):
+        
+        try:
+            return Driver.objects.get(user=user)
+        except Driver.DoesNotExist:
+            return None

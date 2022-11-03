@@ -26,7 +26,7 @@ class ServicesAPIView(generics.ListAPIView):
     queryset = Service.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('customer__user__username', 'cargo_type')
+    filterset_fields = ('id', 'customer__user__username', 'cargo_type')
 
 
     pagination_class = CustomPagination
@@ -79,7 +79,7 @@ class OffersAPIView(generics.ListAPIView):
 
     filter_backends = (DjangoFilterBackend, SearchFilter)
 
-    filterset_fields = ('id', 'service')
+    filterset_fields = ('id', 'service', 'driver','driver__user__username', 'service__customer', 'service__customer__user__username')
 
 
     pagination_class = CustomPagination
@@ -131,12 +131,11 @@ class OrdersAPIView(generics.ListAPIView):
 
     pagination_class = CustomPagination
 
-    
-
     queryset = Order.objects.all()
     filter_backends = (DjangoFilterBackend, SearchFilter)
 
-    filterset_fields = ('id', 'offer', 'order_status', 'offer__driver', 'offer__service', 'offer__service__customer')
+    filterset_fields = ('id', 'offer', 'order_status', 'offer__driver', 'offer__driver__user__username',
+     'offer__service', 'offer__service__customer', 'offer__service__customer__user__username')
 
 
     def post(self, request, format=None):
