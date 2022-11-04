@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import generics
 
 from rest_framework import permissions, status
-from account_app.api.permissions import UserIsNotCustomerOrDriver
+from account_app.api.permissions import UserIsNotCustomer, UserIsNotDriver
 from account_app.api.serializers import DriverSerializers, UserSerializers, CustomerSerializers
 
 from account_app.models import Customer, Driver, User
@@ -76,7 +76,7 @@ class UserApiView(APIView):
 
 
 class UpgradeAccountToCustomerApiView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotCustomerOrDriver]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotCustomer]
     serializer_class = CustomerSerializers
 
     pagination_class = CustomPagination
@@ -84,7 +84,7 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
     queryset = Customer.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('id','user','user__username', 'commercial_no', 'location', 'customer_name')
+    filterset_fields = ('id','user','user__username', 'commercial_record', 'location', 'customer_name')
 
     def post(self, request, *args, **kwargs):
 
@@ -112,7 +112,7 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
 
     def put(self, request, *args, **kwargs):
         
-        instance = self.get_object(request.user)
+        instance = self.get_object(request.user.customer_account.id)
         if not instance:
             return Response({"message": "الحساب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,15 +125,17 @@ class UpgradeAccountToCustomerApiView(generics.ListAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_object(self, user):
+    def get_object(self, id):
         try:
-            return Customer.objects.get(user=user)
+            return Customer.objects.get(id=id)
         except Customer.DoesNotExist:
             return None
     
-   
+
+
+
 class UpgradeAccountToDriverApiView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotCustomerOrDriver]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, UserIsNotDriver]
     serializer_class = DriverSerializers
     
     pagination_class = CustomPagination
@@ -143,8 +145,13 @@ class UpgradeAccountToDriverApiView(generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('id', 'user','user__username', 'driver_name', 'car_type', 'car_no', 'location', 'location_type')
 
-    def post(self, request, *args, **kwargs):
+    def get_object(self, id):
+        try:
+            return Driver.objects.get(id=id)
+        except Driver.DoesNotExist:
+            return None
 
+    def post(self, request, *args, **kwargs):
         user = request.user
         user.user_type = '2'
 
@@ -159,13 +166,13 @@ class UpgradeAccountToDriverApiView(generics.ListAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request, *args, **kwargs):
-        instance = self.get_object(request.user)
-        if not instance:
+        instance_driver = self.get_object(request.user.driver_account.id)
+        if not instance_driver:
             return Response({"message": "الحساب غير موجود"}, status=status.HTTP_400_BAD_REQUEST)
 
         request = set_request_data(request,request.user.id)
 
-        serializer = DriverSerializers(instance=instance,data=request.data, partial=True)
+        serializer = DriverSerializers(instance=instance_driver,data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'تمت تعديل الحساب بنجاح', 'result': serializer.data}, status=status.HTTP_200_OK)
@@ -173,9 +180,4 @@ class UpgradeAccountToDriverApiView(generics.ListAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-    def get_object(self, user):
-        
-        try:
-            return Driver.objects.get(user=user)
-        except Driver.DoesNotExist:
-            return None
+   

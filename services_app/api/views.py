@@ -190,22 +190,12 @@ class OrderAPIView(APIView):
                 'arrival_dt': timezone.now()
             })
 
-        serializer = OrderSerializers(
-            instance=order_instance, data=data, partial=True)
+        serializer = OrderSerializers(instance=order_instance, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def delete(self, request, order_id, *args, **kwargs):
-    #     order_instance = self.get_object(order_id)
-    #     if not order_instance:
-    #         return Response(
-    #             {"res": "الطلب غير موجود"},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-    #     order_instance.delete()
-    #     return Response({'message': "تم حذف الطلب"}, status=status.HTTP_200_OK)
 
 
 

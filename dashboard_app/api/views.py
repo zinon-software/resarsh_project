@@ -12,7 +12,7 @@ class ApisView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request, *args, **kwargs):
 
-        buseUrl = 'http://54.173.9.62/'
+        buseUrl = 'http://127.0.0.1:8000/'
 
         data = {
             'auth':{
