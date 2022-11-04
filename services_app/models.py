@@ -30,9 +30,9 @@ class Service(models.Model):
     created_dt = models.DateTimeField(auto_now_add=True)
 
 
-# class Image(models.Model):
-#     image = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-#     service = models.ForeignKey(Service, related_name='images', on_delete=models.CASCADE)
+class Image(models.Model):
+    image = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
+    service = models.ForeignKey(Service, related_name='images', on_delete=models.CASCADE)
 
 
 class Offer(models.Model):

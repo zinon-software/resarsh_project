@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status
 from services_app.api.pagination import CustomPagination
 
-from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject
+from services_app.api.permissions import CustomerOnlyObject, DriverOnlyObject, DriverOrCustomerOnlyObject, IsCustomerAddPost
 from services_app.api.serializers import OfferSerializers, OrderSerializers, ServiceSerializers
 from services_app.models import Offer, Order, Service
 from account_app.api.views import set_request_data
@@ -26,7 +26,7 @@ class ServicesAPIView(generics.ListAPIView):
     queryset = Service.objects.all()
     
     filter_backends = (DjangoFilterBackend, SearchFilter)
-    filterset_fields = ('id', 'customer__user__username', 'cargo_type')
+    filterset_fields = ('id', 'customer__user__username', 'cargo_type', 'is_active')
 
 
     pagination_class = CustomPagination
@@ -49,7 +49,7 @@ class ServiceApiView(APIView):
 
     def get_object(self, service_id):
         '''
-        Helper method to get the object with given  user
+        Helper method to get the object with given  service
         '''
         try:
             return Service.objects.get(id=service_id)
@@ -68,7 +68,6 @@ class ServiceApiView(APIView):
         serializer = ServiceSerializers(user_instance)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 class OffersAPIView(generics.ListAPIView):
@@ -123,10 +122,8 @@ class OfferApiView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
-
 class OrdersAPIView(generics.ListAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsCustomerAddPost]
     serializer_class = OrderSerializers
 
     pagination_class = CustomPagination
@@ -141,8 +138,15 @@ class OrdersAPIView(generics.ListAPIView):
     def post(self, request, format=None):
         request = set_request_data(request, request.user.customer_account.id, 'customer')
         serializer = OrderSerializers(data=request.data,context={"request":request})
+
+
+        id =  request.data.get('offer')
+        offer = Offer.objects.get(id=id)
+        offer.service.is_active = False
+
         if serializer.is_valid():
             serializer.save()
+            offer.service.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
