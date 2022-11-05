@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_auth_urls',
     'dashboard_app',
     'services_app',
+    'chat_app',
 
     # Third-Party Apps
     'rest_framework',
@@ -64,6 +65,8 @@ INSTALLED_APPS = [
     # 'rest_auth.registration',
 
     'rest_auth',
+
+    'channels',
 
     
 ]
@@ -118,7 +121,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
+ASGI_APPLICATION = "project.asgi.application"
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases

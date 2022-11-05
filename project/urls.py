@@ -32,7 +32,8 @@ urlpatterns = [
     path('api/', include('services_app.api.urls')),
     path('api/', include('dashboard_app.api.urls')),
 
-    path('', views.home_view)
+    path('', views.home_view),
+    path("chat/", include("chat_app.urls")),
     
 ]
 
