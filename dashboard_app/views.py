@@ -5,5 +5,5 @@ from django.http import HttpResponse
 
 def home_view(request):
     
-    # return render(request, 'blog/home.html', context)
-    return HttpResponse(':) بيرك الصفحة تنتضرك')
+    return render(request, 'home/home_page.html')
+    # return HttpResponse(':) بيرك الصفحة تنتضرك')

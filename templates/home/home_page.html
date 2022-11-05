@@ -1,0 +1,19 @@
+{% extends "base.html" %} {% load static %} {% block title %}
+<title>TruckGo</title>
+{% endblock %} 
+{% comment %} body {% endcomment %}
+{% block content %}
+
+{% comment %} loader {% endcomment %}
+{% include "home/loader.html" %} 
+{% comment %} end loader {% endcomment %}
+
+{% comment %} wrapper {% endcomment %}
+{% include 'home/wrapper.html' %}
+{% comment %} end wrapper {% endcomment %}
+
+<div class="overlay"></div>
+
+
+{% endblock %}
+{% comment %} end body {% endcomment %}
